@@ -1,0 +1,19 @@
+symfony:
+  extensions:
+    FriendsOfBehat\SymfonyExtension:
+      kernel:
+        class: MyCoon\Apps\Backoffice\Backend\Kernel
+      bootstrap: apps/bootstrap.php
+    Behat\MinkExtension:
+      sessions:
+        symfony:
+          symfony: ~
+      base_url: ''
+
+  suites:
+    user:
+      paths: [ tests/apps/symfony/features/user ]
+      contexts:
+        - MyCoon\Tests\Shared\Infrastructure\Behat\ApplicationFeatureContext
+        - MyCoon\Tests\Shared\Infrastructure\Behat\ApiContext
+

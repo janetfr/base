@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  mycoon_mongo:
+    container_name: mycoon-backoffice-mongo
+    image: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: example
+    ports:
+      - 27017:27017
+
+  mycoon_server:
+    container_name: mycoon-server-backoffice-php
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    expose:
+      - "9000"
+    ports:
+      - "80:80"
+    volumes:
+      - ../:/var/www/html
+    env_file:
+      - ../.env
+    environment:
+      XDEBUG_CONFIG: remote_host=host.docker.internal
+      PHP_IDE_CONFIG: serverName=api.mycoon.local
+      APP_ENV: test
+    extra_hosts:
+      - "api.mycoon.local:127.0.0.1"
+    depends_on:
+      - mycoon_mongo

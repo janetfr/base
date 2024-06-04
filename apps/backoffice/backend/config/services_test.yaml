@@ -1,0 +1,11 @@
+framework:
+  test: true
+
+services:
+  _defaults:
+    autoconfigure: true
+    autowire: true
+
+  MyCoon\Tests\:
+    resource: '../../../../tests/src'
+

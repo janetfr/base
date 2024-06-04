@@ -1,0 +1,102 @@
+imports:
+    - { resource: ../../../../src/Backoffice/Shared/Infrastructure/Symfony/DependencyInjection/backoffice_services.yaml }
+
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices/configuration.html#application-related-configuration
+parameters:
+    domain: '%env(DOMAIN)%'
+
+services:
+
+    #MyCoon\Apps\Backoffice\Backend\Command\ImportCommand:
+    #    tags:
+    #       - { name: 'console.command', command: 'app:import' }
+
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    #App\:
+    #    resource: '../src/*'
+    #    exclude: '../src/{DependencyInjection,Entity,Migrations,Tests,Kernel.php}'
+
+    # controllers are imported separately to make sure services can be injected
+    # as action arguments even if you don't extend any base controller class
+    MyCoon\Apps\Backoffice\Backend\Controller\:
+        resource: '../src/Controller'
+        tags: ['controller.service_arguments']
+
+    # add more service definitions when explicit configuration is needed
+    # please note that last definitions always *replace* previous ones
+
+    _instanceof:
+        MyCoon\Shared\Domain\Bus\Event\DomainEventSubscriber:
+            tags: ['MyCoon.domain_event_subscriber']
+
+        MyCoon\Shared\Domain\Bus\Command\CommandHandler:
+            tags: ['MyCoon.command_handler']
+
+        MyCoon\Shared\Domain\Bus\Query\QueryHandler:
+            tags: ['MyCoon.query_handler']
+
+    # Wire
+    MyCoon\:
+        resource: '../../../../src'
+
+    # -- TAGGING --
+    MyCoon\Shared\Infrastructure\Bus\Event\InMemory\InMemorySymfonyEventBus:
+        arguments: [!tagged MyCoon.domain_event_subscriber]
+        lazy: true
+
+    MyCoon\Shared\Infrastructure\Bus\Event\DomainEventMapping:
+        arguments: [!tagged MyCoon.domain_event_subscriber]
+
+    MyCoon\Shared\Infrastructure\Bus\Event\DomainEventSubscriberLocator:
+        arguments: [!tagged MyCoon.domain_event_subscriber]
+
+    MyCoon\Shared\Infrastructure\Doctrine\DatabaseConnections:
+        arguments: [!tagged MyCoon.database_connection]
+
+    MyCoon\Shared\Infrastructure\Symfony\AddJsonBodyToRequestListener:
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest }
+
+    # -- APP DEFINITIONS --
+    # Command/Query Handlers
+    MyCoon\Shared\Infrastructure\Bus\Command\InMemorySymfonyCommandBus:
+        arguments: [!tagged MyCoon.command_handler]
+
+    MyCoon\Shared\Infrastructure\Bus\Query\InMemorySymfonyQueryBus:
+        arguments: [!tagged MyCoon.query_handler]
+
+    MyCoon\Shared\Domain\Bus\Event\EventBus: '@MyCoon\Shared\Infrastructure\Bus\Event\InMemory\InMemorySymfonyEventBus'
+
+    MyCoon\Shared\Infrastructure\Symfony\BasicHttpAuthMiddleware:
+        tags:
+            - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest }
+
+    MyCoon\Apps\Backoffice\Backend\Command\SendSoundNotificationCommand:
+        tags:
+            - { name: 'console.command', command: 'app:send-sound-notification' }
+
+    MyCoon\Apps\Backoffice\Backend\Command\SendSMSToUserCommand:
+        tags:
+            - { name: 'console.command', command: 'app:send-sms-to-user' }
+
+    MyCoon\Apps\Backoffice\Backend\Command\PatchMeetingCommand:
+        tags:
+            - { name: 'console.command', command: 'app:patch-meeting' }
+
+    MyCoon\Apps\Backoffice\Backend\Command\PatchDuplicatePersonCommand:
+        tags:
+            - { name: 'console.command', command: 'app:patch-duplicate-person' }
+
+    MyCoon\Apps\Backoffice\Backend\Command\PatchSchoolTypeCommand:
+        tags:
+            - { name: 'console.command', command: 'app:patch-school-type' }

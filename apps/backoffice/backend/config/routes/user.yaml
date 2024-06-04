@@ -1,0 +1,16 @@
+user_create:
+  path: /user
+  controller: MyCoon\Apps\Backoffice\Backend\Controller\User\UserCreatePostController
+  methods:  [POST]
+
+user_auth:
+  path: /user/auth
+  controller: MyCoon\Apps\Backoffice\Backend\Controller\User\UserAuthenticatePostController
+  methods:  [POST]
+
+user_current:
+  path: /user/current
+  controller: MyCoon\Apps\Backoffice\Backend\Controller\User\UserCurrentGetController
+  methods:  [GET]
+  defaults:
+    auth: true
